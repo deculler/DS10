@@ -320,6 +320,31 @@ class table :
                 ntable.addCol(colName+'-sum', type, [np.sum(skcol[s:e])  for s,e in ranges])
         return ntable
 
-                
-                
-            
+    def joinTable(self, tableName, colName, xtable, xcolName) :
+        index = np.argsort(self.col(colName))
+        scol = self.col(colName)[index] # sort left column
+        xindex = np.argsort(xtable.col(xcolName))
+        xscol = xtable.col(xcolName)[xindex] # sort right column
+        i = 0
+        xi = 0
+        rows = []
+        xrows = []
+        while i < self.len and xi < xtable.len :
+            if scol[i] == xscol[xi] :
+                rows.append(i)
+                xrows.append(xi)
+                i +=1
+                xi+=1
+            elif scol[i] < xscol[xi] :
+                i+=1            # advance left, if reaches end no possible further matches
+            else:
+                xi+=1           # advance right, same
+        
+        ntable = table(tableName)
+        for name,type in zip(self.cols,self.type) :
+            ntable.addCol(name,type,self.col(name)[index][np.array(rows)])
+        for name,type in zip(xtable.cols,xtable.type) :
+            if name != xcolName :
+                ntable.addCol(name,type,xtable.col(name)[xindex][np.array(xrows)])
+        return ntable
+
